@@ -6,17 +6,19 @@
 
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="/favicon.ico" type="image/x-icon">
 
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
 	<script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
 </head>
 <body>
 <div id="mapid" style="width: 800px; height: 600px;"></div>
 <script>
 	var myMarkers = [];
+
 	var myMap = L.map('mapid').setView([53.343, -6.27], 13);
 	L.tileLayer('https://api.mapbox.com/styles/v1/jonathanbyrn/cityo3dd800da2iqi95gvn64r/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
 	    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -26,12 +28,10 @@
 	}).addTo(myMap);
 
 
-	function drawStations(dublinbikes) {
-		var stations = dublinbikes.network.stations;
-
-		for (var i = 0; i < stations.length; i++){
-					console.log(stations[i].free_bikes);
-	    	drawStation(stations[i]);
+	function drawStations(stations) {
+		for (var key in stations) {
+			var data = {"name":key, "lat":stations[key].lat, "lng":stations[key].lng};
+		  drawStation(data);
 		}
 	}
 
@@ -41,8 +41,8 @@
 		}
 		this.name = options.name || '';
 		this.fillOpacity = options.fillOpacity || 0.5;
-		this.latitude = options.latitude || 0;
-		this.longitude = options.longitude || 0;
+		this.latitude = options.lat || 0;
+		this.longitude = options.lng || 0;
 		this.number = options.number || 0;
 		this.free_bikes = options.free_bikes || 0;
 		this.empty_slots = options.empty_slots || 0;
@@ -91,6 +91,10 @@
 		return this;
 	};
 
+	myMarker.prototype.setCoords = function(){
+		return this;
+	}
+
 	myMarker.prototype.addToMap = function (map) {
 		L.circle.apply(this, this.leafletAdapter())
 			.addTo(map)
@@ -106,6 +110,7 @@
 
 	function drawStation(station){
 		var marker = new myMarker(station)
+			.setCoords()
 			.setColor()
 			.setLabel()
 			.addToMap(myMap);
@@ -114,13 +119,18 @@
 	//a self-executing named function
 	function getData() {
 		$.ajax({
-	        url: 'https://api.citybik.es/v2/networks/dublinbikes',
+	        url: 'http://localhost:8081/stationcoords.json',
 	        dataType: 'json',
 	        success: function(response){
 	           drawStations(response);
 	        }
 	    });
 	}
+
+
+
+
+
 	$(document).on('ready', getData);
 </script>
 
