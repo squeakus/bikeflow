@@ -14,15 +14,16 @@
 
 </head>
 <body>
-<div id="mapid" style="width: 1200px; height: 800px;"></div>
-<p><button>Next</button></p>
-<input type="range"  min="0" max="100" />
+<h1 id=timeTitle>Time:<h1>
+<div id="mapid" style="width: 1200px; height: 700px;"></div>
+<p><button>Restart</button></p>
+<!--input type="range"  min="0" max="100" /-->
 
 
 <script>
 	var myMarkers = {};
 	var circlesLayer = new L.LayerGroup();
-	var stationData = [];
+	var stationData = []
 	var	dataCnt = 0;
 	var myMap = L.map('mapid').setView([53.343, -6.27], 14);
 	L.tileLayer('https://api.mapbox.com/styles/v1/jonathanbyrn/cityo3dd800da2iqi95gvn64r/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
@@ -87,7 +88,6 @@
 	    this.fillColor = 'orange';
 	    this.color = 'orange';
 	  }
-
 		else{
 			this.fillColor = 'green';
 			this.color = 'green';
@@ -123,52 +123,57 @@
 	}
 
 	function readData(data){
-		stationdata = data;
-		time = stationdata[0][0];
-		currentStations = stationdata[0][1];
-		for (key in currentStations) {
-			newstat = myMarkers[key];
-			newstat.free_bikes = currentStations[key][0];
-			newstat.empty_slots = currentStations[key][1];
-			newstat.setLabel()
-							.setColor()
-							.addToMap(myMap);
-		}
+		stationData = data;
+		window.setInterval(function(){
+			drawNextLayer();
+		}, 50);
+
 	}
+
+	function drawNextLayer(){
+		if(dataCnt < stationData.length){
+			circlesLayer.clearLayers();
+
+			time = stationData[dataCnt][0];
+			var res = time.split("T");
+			$('#timeTitle').text("Date: "+res[0]+" Time: " + res[1]);
+			currentStations = stationData[dataCnt][1];
+			for (key in currentStations) {
+				newstat = myMarkers[key];
+				newstat.free_bikes = currentStations[key][0];
+				newstat.empty_slots = currentStations[key][1];
+				newstat.setLabel()
+								.setColor()
+								.addToMap(myMap);
+			}
+			dataCnt++;
+		 }
+	 }
 
 	function getData() {
 		$.ajax({
-	        url: 'http://localhost:8080/stationcoords.json',
+					//url: 'http://localhost:8080/stationcoords.json',
+					url: 'http://www.jonathan-byrne.com/bikeflow/stationcoords.json',
 	        dataType: 'json',
 	        success: function(response){
 	           drawStations(response);
 	        }
 	    });
 			$.ajax({
-						url: 'http://localhost:8080/stationdata.json',
+						//url: 'http://localhost:8080/stationdata.json',
+						url: 'http://www.jonathan-byrne.com/bikeflow/stationdata.json',
 						dataType: 'json',
 						success: function(response){
 							 readData(response);
 						}
 				});
+	 }
 
-	}
+
 	$(document).on('ready', getData);
 
 	$( "button" ).click(function() {
-			dataCnt++;
-			myMap.removeLayer(circlesLayer);
-			// time = stationdata[dataCnt][0];
-			// currentStations = stationdata[dataCnt][1];
-			// for (key in currentStations) {
-			// 	newstat = myMarkers[key];
-			// 	newstat.free_bikes = currentStations[key][0];
-			// 	newstat.empty_slots = currentStations[key][1];
-			// 	newstat.setLabel()
-			// 					.setColor()
-			// 					.addToMap(myMap);
-			// }
-			//
+		dataCnt = 0;
 	});
 
 
