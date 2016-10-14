@@ -3,7 +3,6 @@
 <head>
 
 	<title>Dublin Bike Map</title>
-
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
@@ -16,9 +15,15 @@
 </head>
 <body>
 <div id="mapid" style="width: 1200px; height: 800px;"></div>
+<p><button>Next</button></p>
+<input type="range"  min="0" max="100" />
+
+
 <script>
 	var myMarkers = {};
+	var circlesLayer = new L.LayerGroup();
 	var stationData = [];
+	var	dataCnt = 0;
 	var myMap = L.map('mapid').setView([53.343, -6.27], 14);
 	L.tileLayer('https://api.mapbox.com/styles/v1/jonathanbyrn/cityo3dd800da2iqi95gvn64r/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
 	    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -26,6 +31,8 @@
 	    id: 'mapbox.streets',
 	    accessToken: 'pk.eyJ1Ijoiam9uYXRoYW5ieXJuIiwiYSI6ImNpZ2RsZ3NrZDJiYm50ZG02eTNhNGt2OGEifQ.-LjytHg0DAfmQnhUrIh_mA'
 	}).addTo(myMap);
+	circlesLayer.addTo(myMap);
+
 
 	function myMarker(options) {
 		if(typeof options === 'undefined') {
@@ -65,21 +72,22 @@
 		this.radius = 20 + (2 * this.free_bikes);
 
 		if(this.empty_slots == 0){
-						this.fillColor = 'blue';
-						this.color = 'blue';
+			this.fillColor = 'blue';
+			this.color = 'blue';
 		}
 		else if(this.empty_slots < 5){
-						this.fillColor = 'RoyalBlue';
-						this.color = 'RoyalBlue';
+			this.fillColor = 'RoyalBlue';
+			this.color = 'RoyalBlue';
 		}
 		else if (this.free_bikes == 0 ){
 			this.fillColor = 'red';
 			this.color = 'red';
 		}
-	    else if (this.free_bikes < 5 ){
-	      	this.fillColor = 'orange';
-	      	this.color = 'orange';
-	    }
+	  else if (this.free_bikes < 5 ){
+	    this.fillColor = 'orange';
+	    this.color = 'orange';
+	  }
+
 		else{
 			this.fillColor = 'green';
 			this.color = 'green';
@@ -89,11 +97,10 @@
 	};
 
 	myMarker.prototype.addToMap = function (map) {
-		L.circle.apply(this, this.leafletAdapter())
-			.addTo(map)
-			.bindPopup(this.getLabel());
+		circle = L.circle.apply(this, this.leafletAdapter())
+								.bindPopup(this.getLabel());
+		circlesLayer.addLayer(circle);
 	};
-
 
 	myMarker.prototype.setLabel = function() {
 		this._label = this.name + "<br/>Bikes: " +this.free_bikes+"<br/>Free:"+ this.empty_slots;
@@ -117,7 +124,6 @@
 
 	function readData(data){
 		stationdata = data;
-		//console.log(stationdata[0]);
 		time = stationdata[0][0];
 		currentStations = stationdata[0][1];
 		for (key in currentStations) {
@@ -127,10 +133,7 @@
 			newstat.setLabel()
 							.setColor()
 							.addToMap(myMap);
-			console.log( myMarkers[key]);
 		}
-
-
 	}
 
 	function getData() {
@@ -150,12 +153,25 @@
 				});
 
 	}
-
-
 	$(document).on('ready', getData);
+
+	$( "button" ).click(function() {
+			dataCnt++;
+			myMap.removeLayer(circlesLayer);
+			// time = stationdata[dataCnt][0];
+			// currentStations = stationdata[dataCnt][1];
+			// for (key in currentStations) {
+			// 	newstat = myMarkers[key];
+			// 	newstat.free_bikes = currentStations[key][0];
+			// 	newstat.empty_slots = currentStations[key][1];
+			// 	newstat.setLabel()
+			// 					.setColor()
+			// 					.addToMap(myMap);
+			// }
+			//
+	});
+
+
 </script>
-
-
-<input type="range"  min="0" max="100" />
 </body>
 </html>
